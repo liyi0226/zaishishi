@@ -1,0 +1,108 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 26
+
+    resourcePrefix "liyi_" //资源标识前缀 随意填写
+
+    defaultConfig {
+        minSdkVersion 22
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+// 然后你可以拷贝下面这一大段 修改注释的地方
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+version = "0.0.1"// 区分library版本
+
+def siteUrl = 'https://github.com/Leo0618/Utils'   // 项目的主页 github地址
+def gitUrl = 'https://github.com/liyi0226/mamba.git'   // Git仓库的url
+group = "com.liyi.mylibrary"            // Maven Group ID for the artifact，一般填你唯一的包名
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                //项目的描述
+                name 'Android Utils.'
+                url siteUrl
+                // 许可证说明
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    //开发者的基本信息，根据自己喜好填上就是
+                    developer {
+                        id 'Leo0618'
+                        name 'liyi'
+                        email 'yishen3513@vip.qq.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    options.linkSource true
+    classpath += project.files(project.android.getBootClasspath().join(File.pathSeparator))
+    failOnError false
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "LiyiFirst"    //发布到JCenter上的项目名字
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
+
+    dependencies {
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+        implementation 'com.android.support:appcompat-v7:26.1.0'
+        testImplementation 'junit:junit:4.12'
+        androidTestImplementation 'com.android.support.test:runner:1.0.1'
+        androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    }
+}
